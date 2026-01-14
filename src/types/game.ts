@@ -50,3 +50,40 @@ export const RANK_VALUES: Record<Rank, number> = {
   'Q': 12,
   'K': 13,
 };
+
+// 敵の定義
+export interface Enemy {
+  name: string;
+  maxHP: number;
+  hp: number;
+  attackRange: [number, number];  // ランダム攻撃値の範囲
+  shieldRange: [number, number];  // ランダムシールド値の範囲
+  currentAttack: number;
+  currentShield: number;
+}
+
+// ゲームの進行状態
+export type GameStatus = 'playing' | 'win' | 'gameover' | 'stage_clear';
+
+// ゲームの状態
+export interface GameState {
+  // プレイヤー
+  playerHP: number;
+  playerMaxHP: number;
+  playerAttack: number;
+  playerShield: number;
+  deck: Card[];
+  hand: Card[];  // 4枚
+
+  // フィールド
+  leftFieldCard: Card | null;   // 攻撃用の場札
+  rightFieldCard: Card | null;  // シールド用の場札
+
+  // 敵
+  enemy: Enemy;
+
+  // ゲーム進行
+  stage: number;
+  round: number;
+  gameStatus: GameStatus;
+}
