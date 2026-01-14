@@ -103,22 +103,46 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'END_ROUND': {
-      // バトル計算
+      // プレイヤー先攻でダメージ処理
+
+      // 1. プレイヤーの攻撃
       const playerDamage = Math.max(0, state.playerAttack - state.enemy.currentShield);
-      const enemyDamage = Math.max(0, state.enemy.currentAttack - state.playerShield);
-
       const newEnemyHP = state.enemy.hp - playerDamage;
-      const newPlayerHP = state.playerHP - enemyDamage;
 
-      // 勝敗判定
-      let newStatus = state.gameStatus;
+      // 2. 敵のHP確認: 0以下ならステージクリア、以降の処理スキップ
       if (newEnemyHP <= 0) {
-        newStatus = 'stage_clear';
-      } else if (newPlayerHP <= 0) {
-        newStatus = 'gameover';
+        return {
+          ...state,
+          playerAttack: 0,
+          playerShield: 0,
+          enemy: {
+            ...state.enemy,
+            hp: 0,
+          },
+          gameStatus: 'stage_clear',
+        };
       }
 
-      // 次のラウンド準備
+      // 3. 敵の攻撃
+      const enemyDamage = Math.max(0, state.enemy.currentAttack - state.playerShield);
+      const newPlayerHP = state.playerHP - enemyDamage;
+
+      // 4. プレイヤーのHP確認: 0以下ならゲームオーバー
+      if (newPlayerHP <= 0) {
+        return {
+          ...state,
+          playerHP: 0,
+          playerAttack: 0,
+          playerShield: 0,
+          enemy: {
+            ...state.enemy,
+            hp: newEnemyHP,
+          },
+          gameStatus: 'gameover',
+        };
+      }
+
+      // 5. 両者生存なら次ラウンドへ
       const deck = shuffleDeck(createDeck());
       const { cards: fieldCards, remainingDeck: deckAfterField } = drawCards(deck, 2);
       const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, 4);
@@ -142,7 +166,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         rightFieldCard: fieldCards[1] || null,
         enemy: newEnemy,
         round: state.round + 1,
-        gameStatus: newStatus,
+        gameStatus: 'playing',
       };
     }
 
