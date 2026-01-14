@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Card } from './components/Card';
+import { BuildInfo } from './components/BuildInfo';
 import { createDeck, shuffleDeck } from './utils/deck';
 import type { Card as CardType } from './types/game';
 
@@ -66,6 +67,9 @@ function App() {
           ))}
         </div>
       </div>
+
+      {/* ビルド日時 */}
+      <BuildInfo />
     </div>
   );
 }
