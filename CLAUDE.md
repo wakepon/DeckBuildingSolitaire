@@ -1,9 +1,11 @@
 # プロジェクト概要
-ソリティアをデッキ構築バトルにしたブラウザゲーム
+トランプの「スピード」をベースにしたデッキ構築バトルブラウザゲーム
 
 # 技術スタック
-- HTML5 / CSS3 / JavaScript
-- Canvas API
+- React + TypeScript
+- Tailwind CSS
+- Vite（ビルドツール）
+- React Hooks（状態管理）
 
 # 作業の進め方
 
@@ -25,8 +27,8 @@
 [何を実装するか]
 
 ### 作成/変更するファイル
-- `js/xxx.js` - [役割]
-- `css/style.css` - [変更内容]
+- `src/components/xxx.tsx` - [役割]
+- `src/types/xxx.ts` - [型定義]
 
 ### 実装手順
 1. [ステップ1]
@@ -36,20 +38,27 @@
 
 # コーディングルール
 
-## JavaScript
-- Model,View, Presenter方式で実装する
-- グローバル変数は極力オブジェクトにまとめる（例：Game, Board, Block）
+## TypeScript/React
+- コンポーネントは関数コンポーネントで実装
+- 型定義は`src/types/`に配置
+- ユーティリティ関数は`src/utils/`に配置
+- カスタムフックは`src/hooks/`に配置
 
 ## ファイル構成
 
 ```
 ├── index.html
-├── css/
-│   └── style.css
-└── js/
-    ├── config.js      # 設定値
-    ├── input.js       # 入力処理
-    └── game.js        # メイン（最後に読み込む）
+├── src/
+│   ├── components/    # Reactコンポーネント
+│   ├── types/         # 型定義
+│   ├── utils/         # ユーティリティ関数
+│   ├── hooks/         # カスタムフック
+│   ├── App.tsx        # メインアプリケーション
+│   ├── main.tsx       # エントリーポイント
+│   └── index.css      # グローバルスタイル
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
 ```
 
 ## その他
@@ -59,3 +68,8 @@
 
 ## 注意事項
 - 1ファイルが300行を超えたら分割を検討
+
+## 開発コマンド
+- `npm run dev` - 開発サーバー起動
+- `npm run build` - プロダクションビルド
+- `npm run preview` - ビルド結果のプレビュー
