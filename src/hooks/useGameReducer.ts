@@ -1,5 +1,5 @@
 import { useReducer, useCallback } from 'react';
-import type { GameState, Enemy } from '../types/game';
+import type { GameState, Enemy, BattleResult } from '../types/game';
 import { createDeck, shuffleDeck, drawCards } from '../utils/deck';
 import { canPlayCard, refillHand, isRoundOver, randomInRange } from '../utils/gameLogic';
 import { createEnemyForStage, TOTAL_STAGES } from '../data/enemies';
@@ -12,6 +12,7 @@ type GameAction =
   | { type: 'START_GAME' }
   | { type: 'PLAY_CARD'; cardId: string; field: 'left' | 'right' }
   | { type: 'END_ROUND' }
+  | { type: 'CONTINUE_GAME' }
   | { type: 'NEXT_STAGE' }
   | { type: 'RESET_GAME' };
 
@@ -34,6 +35,7 @@ function createInitialState(): GameState {
     stage: 1,
     round: 1,
     gameStatus: 'playing',
+    lastBattleResult: null,
   };
 }
 
@@ -88,15 +90,42 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'END_ROUND': {
-      // プレイヤー先攻でダメージ処理
+      // バトル結果を計算
+      const damageToEnemy = Math.max(0, state.playerAttack - state.enemy.currentShield);
+      const newEnemyHP = state.enemy.hp - damageToEnemy;
+      const enemyDefeated = newEnemyHP <= 0;
 
-      // 1. プレイヤーの攻撃
-      const playerDamage = Math.max(0, state.playerAttack - state.enemy.currentShield);
-      const newEnemyHP = state.enemy.hp - playerDamage;
+      // 敵が倒れた場合、プレイヤーへのダメージはなし
+      const damageToPlayer = enemyDefeated
+        ? 0
+        : Math.max(0, state.enemy.currentAttack - state.playerShield);
+      const newPlayerHP = state.playerHP - damageToPlayer;
+      const playerDefeated = !enemyDefeated && newPlayerHP <= 0;
 
-      // 2. 敵のHP確認: 0以下ならステージクリア、以降の処理スキップ
-      if (newEnemyHP <= 0) {
-        // 最終ステージクリアならゲームクリア
+      const battleResult: BattleResult = {
+        playerAttack: state.playerAttack,
+        playerShield: state.playerShield,
+        enemyAttack: state.enemy.currentAttack,
+        enemyShield: state.enemy.currentShield,
+        damageToEnemy,
+        damageToPlayer,
+        enemyDefeated,
+        playerDefeated,
+      };
+
+      return {
+        ...state,
+        gameStatus: 'battle_result',
+        lastBattleResult: battleResult,
+      };
+    }
+
+    case 'CONTINUE_GAME': {
+      const result = state.lastBattleResult;
+      if (!result) return state;
+
+      // 敵を倒した場合
+      if (result.enemyDefeated) {
         const isGameClear = state.stage >= TOTAL_STAGES;
         return {
           ...state,
@@ -107,15 +136,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             hp: 0,
           },
           gameStatus: isGameClear ? 'game_clear' : 'stage_clear',
+          lastBattleResult: null,
         };
       }
 
-      // 3. 敵の攻撃
-      const enemyDamage = Math.max(0, state.enemy.currentAttack - state.playerShield);
-      const newPlayerHP = state.playerHP - enemyDamage;
-
-      // 4. プレイヤーのHP確認: 0以下ならゲームオーバー
-      if (newPlayerHP <= 0) {
+      // プレイヤーが倒れた場合
+      if (result.playerDefeated) {
         return {
           ...state,
           playerHP: 0,
@@ -123,18 +149,21 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           playerShield: 0,
           enemy: {
             ...state.enemy,
-            hp: newEnemyHP,
+            hp: state.enemy.hp - result.damageToEnemy,
           },
           gameStatus: 'gameover',
+          lastBattleResult: null,
         };
       }
 
-      // 5. 両者生存なら次ラウンドへ
+      // 両者生存 → 次ラウンドへ
+      const newEnemyHP = state.enemy.hp - result.damageToEnemy;
+      const newPlayerHP = state.playerHP - result.damageToPlayer;
+
       const deck = shuffleDeck(createDeck());
       const { cards: fieldCards, remainingDeck: deckAfterField } = drawCards(deck, 2);
       const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, 4);
 
-      // 敵の新しい攻撃・シールド値を設定
       const newEnemy: Enemy = {
         ...state.enemy,
         hp: newEnemyHP,
@@ -154,6 +183,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         enemy: newEnemy,
         round: state.round + 1,
         gameStatus: 'playing',
+        lastBattleResult: null,
       };
     }
 
@@ -175,6 +205,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         stage: newStage,
         round: 1,
         gameStatus: 'playing',
+        lastBattleResult: null,
       };
     }
 
@@ -190,6 +221,7 @@ export function useGameReducer() {
   const startGame = useCallback(() => dispatch({ type: 'START_GAME' }), []);
   const resetGame = useCallback(() => dispatch({ type: 'RESET_GAME' }), []);
   const nextStage = useCallback(() => dispatch({ type: 'NEXT_STAGE' }), []);
+  const continueGame = useCallback(() => dispatch({ type: 'CONTINUE_GAME' }), []);
 
   const playCard = useCallback((cardId: string, field: 'left' | 'right') => {
     dispatch({ type: 'PLAY_CARD', cardId, field });
@@ -201,5 +233,6 @@ export function useGameReducer() {
     resetGame,
     playCard,
     nextStage,
+    continueGame,
   };
 }

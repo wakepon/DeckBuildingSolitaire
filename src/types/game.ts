@@ -63,7 +63,19 @@ export interface Enemy {
 }
 
 // ゲームの進行状態
-export type GameStatus = 'playing' | 'gameover' | 'stage_clear' | 'game_clear';
+export type GameStatus = 'playing' | 'battle_result' | 'gameover' | 'stage_clear' | 'game_clear';
+
+// バトル結果（ラウンド終了時の演出用）
+export interface BattleResult {
+  playerAttack: number;
+  playerShield: number;
+  enemyAttack: number;
+  enemyShield: number;
+  damageToEnemy: number;
+  damageToPlayer: number;
+  enemyDefeated: boolean;
+  playerDefeated: boolean;
+}
 
 // ゲームの状態
 export interface GameState {
@@ -86,4 +98,7 @@ export interface GameState {
   stage: number;
   round: number;
   gameStatus: GameStatus;
+
+  // バトル結果（演出用）
+  lastBattleResult: BattleResult | null;
 }
