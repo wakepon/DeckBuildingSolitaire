@@ -2,6 +2,10 @@ import { useReducer, useCallback } from 'react';
 import type { GameState, Enemy } from '../types/game';
 import { createDeck, shuffleDeck, drawCards } from '../utils/deck';
 import { canPlayCard, refillHand, isRoundOver, randomInRange } from '../utils/gameLogic';
+import { createEnemyForStage, TOTAL_STAGES } from '../data/enemies';
+
+// プレイヤーの初期HP
+const PLAYER_INITIAL_HP = 30;
 
 // アクションの型定義
 type GameAction =
@@ -11,25 +15,6 @@ type GameAction =
   | { type: 'NEXT_STAGE' }
   | { type: 'RESET_GAME' };
 
-// 初期の敵を生成
-function createEnemy(stage: number): Enemy {
-  const baseHP = 20 + stage * 10;
-  const attackMin = 2 + stage;
-  const attackMax = 5 + stage * 2;
-  const shieldMin = 1 + Math.floor(stage / 2);
-  const shieldMax = 3 + stage;
-
-  return {
-    name: `Enemy Stage ${stage}`,
-    maxHP: baseHP,
-    hp: baseHP,
-    attackRange: [attackMin, attackMax],
-    shieldRange: [shieldMin, shieldMax],
-    currentAttack: randomInRange(attackMin, attackMax),
-    currentShield: randomInRange(shieldMin, shieldMax),
-  };
-}
-
 // 初期状態を生成
 function createInitialState(): GameState {
   const deck = shuffleDeck(createDeck());
@@ -37,15 +22,15 @@ function createInitialState(): GameState {
   const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, 4);
 
   return {
-    playerHP: 50,
-    playerMaxHP: 50,
+    playerHP: PLAYER_INITIAL_HP,
+    playerMaxHP: PLAYER_INITIAL_HP,
     playerAttack: 0,
     playerShield: 0,
     deck: finalDeck,
     hand,
     leftFieldCard: fieldCards[0] || null,
     rightFieldCard: fieldCards[1] || null,
-    enemy: createEnemy(1),
+    enemy: createEnemyForStage(1),
     stage: 1,
     round: 1,
     gameStatus: 'playing',
@@ -111,6 +96,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       // 2. 敵のHP確認: 0以下ならステージクリア、以降の処理スキップ
       if (newEnemyHP <= 0) {
+        // 最終ステージクリアならゲームクリア
+        const isGameClear = state.stage >= TOTAL_STAGES;
         return {
           ...state,
           playerAttack: 0,
@@ -119,7 +106,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             ...state.enemy,
             hp: 0,
           },
-          gameStatus: 'stage_clear',
+          gameStatus: isGameClear ? 'game_clear' : 'stage_clear',
         };
       }
 
@@ -184,7 +171,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         hand,
         leftFieldCard: fieldCards[0] || null,
         rightFieldCard: fieldCards[1] || null,
-        enemy: createEnemy(newStage),
+        enemy: createEnemyForStage(newStage),
         stage: newStage,
         round: 1,
         gameStatus: 'playing',
