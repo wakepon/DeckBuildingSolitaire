@@ -1,17 +1,18 @@
 import { GameBoard } from './components/GameBoard';
 import { BuildInfo } from './components/BuildInfo';
+import { BattleResultScreen } from './components/BattleResultScreen';
 import { useGameReducer } from './hooks/useGameReducer';
 import { TOTAL_STAGES } from './data/enemies';
 
 function App() {
-  const { state, resetGame, playCard, nextStage } = useGameReducer();
+  const { state, resetGame, playCard, nextStage, continueGame } = useGameReducer();
 
   // ゲームクリア画面（全ステージクリア）
   if (state.gameStatus === 'game_clear') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-900 to-indigo-900 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-6xl font-bold text-yellow-300 mb-4 animate-pulse">
+        <div className="text-center animate-fade-in">
+          <h1 className="text-6xl font-bold text-yellow-300 mb-4 animate-victory">
             CONGRATULATIONS!
           </h1>
           <p className="text-2xl text-white mb-2">全ステージクリア!</p>
@@ -39,8 +40,8 @@ function App() {
   if (state.gameStatus === 'gameover') {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-red-500 mb-4">GAME OVER</h1>
+        <div className="text-center animate-fade-in">
+          <h1 className="text-5xl font-bold text-red-500 mb-4 animate-shake">GAME OVER</h1>
           <p className="text-gray-300 mb-2">
             Stage {state.stage} / {TOTAL_STAGES} - {state.enemy.name}
           </p>
@@ -61,8 +62,8 @@ function App() {
   if (state.gameStatus === 'stage_clear') {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h1 className="text-5xl font-bold text-yellow-400 mb-4">STAGE CLEAR!</h1>
+        <div className="text-center animate-fade-in">
+          <h1 className="text-5xl font-bold text-yellow-400 mb-4 animate-victory">STAGE CLEAR!</h1>
           <p className="text-gray-300 mb-2">
             Stage {state.stage} / {TOTAL_STAGES} - {state.enemy.name} を撃破!
           </p>
@@ -76,6 +77,26 @@ function App() {
             次のステージへ (Stage {state.stage + 1})
           </button>
         </div>
+        <BuildInfo />
+      </div>
+    );
+  }
+
+  // バトル結果画面
+  if (state.gameStatus === 'battle_result' && state.lastBattleResult) {
+    return (
+      <div className="min-h-screen bg-green-800 p-4">
+        <GameBoard
+          state={state}
+          onPlayCard={playCard}
+          onReset={resetGame}
+        />
+        <BattleResultScreen
+          result={state.lastBattleResult}
+          enemy={state.enemy}
+          playerHP={state.playerHP}
+          onContinue={continueGame}
+        />
         <BuildInfo />
       </div>
     );
