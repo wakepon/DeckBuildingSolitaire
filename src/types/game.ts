@@ -63,7 +63,7 @@ export interface Enemy {
 }
 
 // ゲームの進行状態
-export type GameStatus = 'playing' | 'win' | 'gameover' | 'stage_clear';
+export type GameStatus = 'playing' | 'gameover' | 'stage_clear' | 'game_clear';
 
 // ゲームの状態
 export interface GameState {

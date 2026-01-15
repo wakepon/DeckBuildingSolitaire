@@ -5,6 +5,7 @@ import { PlayerInfo } from './PlayerInfo';
 import { FieldCards } from './FieldCards';
 import { HandArea } from './HandArea';
 import { canPlayCard } from '../utils/gameLogic';
+import { TOTAL_STAGES } from '../data/enemies';
 
 interface GameBoardProps {
   state: GameState;
@@ -48,8 +49,9 @@ export function GameBoard({ state, onPlayCard, onReset }: GameBoardProps) {
     <div className="max-w-lg mx-auto space-y-4">
       {/* ヘッダー: ステージ・ラウンド情報 */}
       <div className="text-center">
+        <p className="text-gray-300 text-sm">Stage {state.stage} / {TOTAL_STAGES}</p>
         <h1 className="text-xl font-bold text-white">
-          Stage {state.stage} - Round {state.round}
+          Round {state.round}
         </h1>
       </div>
 
