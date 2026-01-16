@@ -10,13 +10,14 @@ import { TOTAL_STAGES } from '../data/enemies';
 interface GameBoardProps {
   state: GameState;
   onPlayCard: (cardId: string, field: 'left' | 'right') => void;
+  onRefreshField: () => void;
   onReset: () => void;
 }
 
 /**
  * ゲームボード全体を表示するコンポーネント
  */
-export function GameBoard({ state, onPlayCard, onReset }: GameBoardProps) {
+export function GameBoard({ state, onPlayCard, onRefreshField, onReset }: GameBoardProps) {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   // 選択中のカードを取得
@@ -67,6 +68,26 @@ export function GameBoard({ state, onPlayCard, onReset }: GameBoardProps) {
         canPlayRight={canPlayRight}
         onFieldClick={handleFieldClick}
       />
+
+      {/* 場札更新ボタン */}
+      <div className="text-center">
+        <button
+          onClick={onRefreshField}
+          disabled={state.fieldRefreshCount <= 0 || state.deck.length < 2}
+          className={`
+            px-4 py-2 rounded-lg font-bold transition-all
+            ${state.fieldRefreshCount > 0 && state.deck.length >= 2
+              ? 'bg-purple-600 text-white hover:bg-purple-700 active:scale-95'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            }
+          `}
+        >
+          🔄 場札更新 ({state.fieldRefreshCount})
+        </button>
+        <p className="text-gray-400 text-xs mt-1">
+          場札と敵のステータスを引き直す
+        </p>
+      </div>
 
       {/* プレイヤー情報 */}
       <PlayerInfo

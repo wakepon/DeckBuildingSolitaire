@@ -99,6 +99,9 @@ export interface GameState {
   round: number;
   gameStatus: GameStatus;
 
+  // 場札更新の残り回数
+  fieldRefreshCount: number;
+
   // バトル結果（演出用）
   lastBattleResult: BattleResult | null;
 }
