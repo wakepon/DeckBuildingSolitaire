@@ -3,14 +3,13 @@ import type { GameState, Enemy, BattleResult } from '../types/game';
 import { createDeck, shuffleDeck, drawCards } from '../utils/deck';
 import { canPlayCard, refillHand, isRoundOver, randomInRange } from '../utils/gameLogic';
 import { createEnemyForStage, TOTAL_STAGES } from '../data/enemies';
-
-// プレイヤーの初期HP
-const PLAYER_INITIAL_HP = 30;
+import { PLAYER_INITIAL_HP, FIELD_REFRESH_MAX_COUNT } from '../config/gameConfig';
 
 // アクションの型定義
 type GameAction =
   | { type: 'START_GAME' }
   | { type: 'PLAY_CARD'; cardId: string; field: 'left' | 'right' }
+  | { type: 'REFRESH_FIELD' }
   | { type: 'END_ROUND' }
   | { type: 'CONTINUE_GAME' }
   | { type: 'NEXT_STAGE' }
@@ -35,6 +34,7 @@ function createInitialState(): GameState {
     stage: 1,
     round: 1,
     gameStatus: 'playing',
+    fieldRefreshCount: FIELD_REFRESH_MAX_COUNT,
     lastBattleResult: null,
   };
 }
@@ -87,6 +87,32 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       return newState;
+    }
+
+    case 'REFRESH_FIELD': {
+      // 更新回数が残っていない場合は何もしない
+      if (state.fieldRefreshCount <= 0) return state;
+      // デッキに2枚以上ない場合は何もしない
+      if (state.deck.length < 2) return state;
+
+      // デッキから2枚引いて場札を更新
+      const { cards: newFieldCards, remainingDeck } = drawCards(state.deck, 2);
+
+      // 敵のアタックとシールドも再抽選
+      const newEnemy: Enemy = {
+        ...state.enemy,
+        currentAttack: randomInRange(state.enemy.attackRange[0], state.enemy.attackRange[1]),
+        currentShield: randomInRange(state.enemy.shieldRange[0], state.enemy.shieldRange[1]),
+      };
+
+      return {
+        ...state,
+        deck: remainingDeck,
+        leftFieldCard: newFieldCards[0] || state.leftFieldCard,
+        rightFieldCard: newFieldCards[1] || state.rightFieldCard,
+        enemy: newEnemy,
+        fieldRefreshCount: state.fieldRefreshCount - 1,
+      };
     }
 
     case 'END_ROUND': {
@@ -205,6 +231,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         stage: newStage,
         round: 1,
         gameStatus: 'playing',
+        fieldRefreshCount: FIELD_REFRESH_MAX_COUNT,
         lastBattleResult: null,
       };
     }
@@ -222,6 +249,7 @@ export function useGameReducer() {
   const resetGame = useCallback(() => dispatch({ type: 'RESET_GAME' }), []);
   const nextStage = useCallback(() => dispatch({ type: 'NEXT_STAGE' }), []);
   const continueGame = useCallback(() => dispatch({ type: 'CONTINUE_GAME' }), []);
+  const refreshField = useCallback(() => dispatch({ type: 'REFRESH_FIELD' }), []);
 
   const playCard = useCallback((cardId: string, field: 'left' | 'right') => {
     dispatch({ type: 'PLAY_CARD', cardId, field });
@@ -234,5 +262,6 @@ export function useGameReducer() {
     playCard,
     nextStage,
     continueGame,
+    refreshField,
   };
 }
