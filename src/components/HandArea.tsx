@@ -71,7 +71,7 @@ export function HandArea({
               />
               {isPlayable && (
                 <div className="text-center mt-1">
-                  <span className="text-yellow-400 text-xs">+{card.value}</span>
+                  <span className="text-yellow-400 text-xs">+1</span>
                 </div>
               )}
             </div>

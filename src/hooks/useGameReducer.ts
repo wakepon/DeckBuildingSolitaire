@@ -64,9 +64,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const newLeftField = field === 'left' ? card : state.leftFieldCard;
       const newRightField = field === 'right' ? card : state.rightFieldCard;
 
-      // 攻撃力またはシールドを加算
-      const attackBonus = field === 'left' ? card.value : 0;
-      const shieldBonus = field === 'right' ? card.value : 0;
+      // 攻撃力またはシールドを+1（カード1枚につき1）
+      const attackBonus = field === 'left' ? 1 : 0;
+      const shieldBonus = field === 'right' ? 1 : 0;
 
       // 手札を補充
       const { newDeck, newHand: refilledHand } = refillHand(state.deck, newHand);
