@@ -11,6 +11,7 @@ interface GameBoardProps {
   state: GameState;
   onPlayCard: (cardId: string, field: 'left' | 'right') => void;
   onRefreshField: () => void;
+  onManualEndRound: () => void;
   onEndRound: () => void;
   onReset: () => void;
 }
@@ -18,7 +19,7 @@ interface GameBoardProps {
 /**
  * ゲームボード全体を表示するコンポーネント
  */
-export function GameBoard({ state, onPlayCard, onRefreshField, onEndRound, onReset }: GameBoardProps) {
+export function GameBoard({ state, onPlayCard, onRefreshField, onManualEndRound, onEndRound, onReset }: GameBoardProps) {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   // round_ending状態になったら1秒後にEND_ROUNDを呼ぶ
@@ -80,24 +81,47 @@ export function GameBoard({ state, onPlayCard, onRefreshField, onEndRound, onRes
         onFieldClick={handleFieldClick}
       />
 
-      {/* 場札更新ボタン */}
-      <div className="text-center">
-        <button
-          onClick={onRefreshField}
-          disabled={state.fieldRefreshCount <= 0 || state.deck.length < 2}
-          className={`
-            px-4 py-2 rounded-lg font-bold transition-all
-            ${state.fieldRefreshCount > 0 && state.deck.length >= 2
-              ? 'bg-purple-600 text-white hover:bg-purple-700 active:scale-95'
-              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-            }
-          `}
-        >
-          🔄 場札更新 ({state.fieldRefreshCount})
-        </button>
-        <p className="text-gray-400 text-xs mt-1">
-          場札と敵のステータスを引き直す
-        </p>
+      {/* アクションボタン */}
+      <div className="flex justify-center gap-4">
+        {/* 場札更新ボタン */}
+        <div className="text-center">
+          <button
+            onClick={onRefreshField}
+            disabled={state.fieldRefreshCount <= 0 || state.deck.length < 2 || state.gameStatus !== 'playing'}
+            className={`
+              px-4 py-2 rounded-lg font-bold transition-all
+              ${state.fieldRefreshCount > 0 && state.deck.length >= 2 && state.gameStatus === 'playing'
+                ? 'bg-purple-600 text-white hover:bg-purple-700 active:scale-95'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }
+            `}
+          >
+            🔄 場札更新 ({state.fieldRefreshCount})
+          </button>
+          <p className="text-gray-400 text-xs mt-1">
+            場札と敵ステータスを引き直す
+          </p>
+        </div>
+
+        {/* 攻撃終了ボタン */}
+        <div className="text-center">
+          <button
+            onClick={onManualEndRound}
+            disabled={state.gameStatus !== 'playing'}
+            className={`
+              px-4 py-2 rounded-lg font-bold transition-all
+              ${state.gameStatus === 'playing'
+                ? 'bg-red-600 text-white hover:bg-red-700 active:scale-95'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }
+            `}
+          >
+            ⚔️ 攻撃終了
+          </button>
+          <p className="text-gray-400 text-xs mt-1">
+            ダメージ計算に移行
+          </p>
+        </div>
       </div>
 
       {/* プレイヤー情報 */}

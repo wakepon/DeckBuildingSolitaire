@@ -10,6 +10,7 @@ type GameAction =
   | { type: 'START_GAME' }
   | { type: 'PLAY_CARD'; cardId: string; field: 'left' | 'right' }
   | { type: 'REFRESH_FIELD' }
+  | { type: 'MANUAL_END_ROUND' }
   | { type: 'END_ROUND' }
   | { type: 'CONTINUE_GAME' }
   | { type: 'NEXT_STAGE' }
@@ -129,6 +130,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         enemy: newEnemy,
         fieldRefreshCount: state.fieldRefreshCount - 1,
       };
+    }
+
+    case 'MANUAL_END_ROUND': {
+      // プレイヤーが手動で攻撃終了を選択
+      return { ...state, gameStatus: 'round_ending' };
     }
 
     case 'END_ROUND': {
@@ -280,6 +286,7 @@ export function useGameReducer() {
   const nextStage = useCallback(() => dispatch({ type: 'NEXT_STAGE' }), []);
   const continueGame = useCallback(() => dispatch({ type: 'CONTINUE_GAME' }), []);
   const refreshField = useCallback(() => dispatch({ type: 'REFRESH_FIELD' }), []);
+  const manualEndRound = useCallback(() => dispatch({ type: 'MANUAL_END_ROUND' }), []);
   const endRound = useCallback(() => dispatch({ type: 'END_ROUND' }), []);
 
   const playCard = useCallback((cardId: string, field: 'left' | 'right') => {
@@ -294,6 +301,7 @@ export function useGameReducer() {
     nextStage,
     continueGame,
     refreshField,
+    manualEndRound,
     endRound,
   };
 }
