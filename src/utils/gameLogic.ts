@@ -1,4 +1,5 @@
 import type { Card, GameState } from '../types/game';
+import { HAND_SIZE } from '../config/gameConfig';
 
 /**
  * カードを場に出せるかを判定する
@@ -41,12 +42,11 @@ export function getPlayableFields(card: Card, leftFieldCard: Card | null, rightF
 }
 
 /**
- * デッキから手札を補充する（4枚になるまで）
+ * デッキから手札を補充する（HAND_SIZE枚になるまで）
  * 元の配列を変更せず、新しい状態を返す
  */
 export function refillHand(deck: Card[], hand: Card[]): { newDeck: Card[]; newHand: Card[] } {
-  const handSize = 4;
-  const cardsNeeded = handSize - hand.length;
+  const cardsNeeded = HAND_SIZE - hand.length;
 
   if (cardsNeeded <= 0 || deck.length === 0) {
     return { newDeck: deck, newHand: hand };

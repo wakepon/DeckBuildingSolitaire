@@ -4,6 +4,7 @@ import { canPlayCard } from '../utils/gameLogic';
 
 interface HandAreaProps {
   hand: CardType[];
+  deck: CardType[];
   leftFieldCard: CardType | null;
   rightFieldCard: CardType | null;
   selectedCardId: string | null;
@@ -15,22 +16,28 @@ interface HandAreaProps {
  */
 export function HandArea({
   hand,
+  deck,
   leftFieldCard,
   rightFieldCard,
   selectedCardId,
   onCardSelect,
 }: HandAreaProps) {
+  // 次に引くカード（デッキの先頭）
+  const nextCard = deck.length > 0 ? deck[0] : null;
+
   return (
     <div className="bg-gray-800/50 rounded-lg p-4">
       <p className="text-white text-center mb-3 text-sm">
         手札（カードをクリックして選択）
       </p>
       <div className="flex justify-center gap-3 flex-wrap">
-        {hand.map((card) => {
+        {hand.map((card, index) => {
           const canPlayLeft = canPlayCard(card, leftFieldCard);
           const canPlayRight = canPlayCard(card, rightFieldCard);
           const isPlayable = canPlayLeft || canPlayRight;
           const isSelected = selectedCardId === card.id;
+          // 最後のカードの下に次のカードを表示
+          const showNextCard = index === hand.length - 1 && nextCard;
 
           return (
             <div
@@ -41,11 +48,19 @@ export function HandArea({
                 }
               }}
               className={`
+                relative
                 transition-all duration-200 cursor-pointer
                 ${isSelected ? 'transform -translate-y-4 scale-110' : ''}
                 ${isPlayable ? 'hover:-translate-y-2' : ''}
               `}
             >
+              {/* 次のカード（最後の手札の下に重ねて表示） */}
+              {showNextCard && (
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 -z-10 opacity-60">
+                  <Card card={nextCard} className="shadow-none" />
+                  <p className="text-gray-400 text-xs text-center mt-0.5">次</p>
+                </div>
+              )}
               <Card
                 card={card}
                 className={`

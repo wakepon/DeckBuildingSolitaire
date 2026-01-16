@@ -101,6 +101,7 @@ export function GameBoard({ state, onPlayCard, onRefreshField, onReset }: GameBo
       {/* 手札 */}
       <HandArea
         hand={state.hand}
+        deck={state.deck}
         leftFieldCard={state.leftFieldCard}
         rightFieldCard={state.rightFieldCard}
         selectedCardId={selectedCardId}
