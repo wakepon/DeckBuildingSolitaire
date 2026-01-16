@@ -158,7 +158,7 @@ export function GameBoard({ state, onPlayCard, onRefreshField, onManualEndRound,
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-gray-800 rounded-lg p-6 text-center animate-slide-in-up">
             <p className="text-2xl font-bold text-yellow-400">
-              もう出せません
+              攻撃終了!
             </p>
             <p className="text-gray-300 mt-2 text-sm">
               ダメージ計算に移行します...
