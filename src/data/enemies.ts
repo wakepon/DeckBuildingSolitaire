@@ -13,27 +13,27 @@ export interface EnemyTemplate {
 export const ENEMY_TEMPLATES: EnemyTemplate[] = [
   {
     name: 'スライム',
-    maxHP: 5,
+    maxHP: 3,
     attackRange: [2, 4],
     shieldRange: [1,3],
   },
   {
     name: 'ゴブリン',
-    maxHP: 8,
+    maxHP: 5,
     attackRange: [3, 6],
     shieldRange: [1, 3],
   },
   {
     name: 'オーク',
-    maxHP: 10,
+    maxHP: 8,
     attackRange: [4, 8],
     shieldRange: [2, 5],
   },
   {
     name: 'ダークナイト',
-    maxHP: 10,
+    maxHP: 8,
     attackRange: [5, 9],
-    shieldRange: [3, 6],
+    shieldRange: [4, 7],
   },
   {
     name: 'ドラゴン',
