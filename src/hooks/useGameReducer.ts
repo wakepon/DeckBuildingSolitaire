@@ -1,7 +1,7 @@
 import { useReducer, useCallback } from 'react';
-import type { GameState, Enemy, BattleResult } from '../types/game';
+import type { GameState, Enemy, BattleResult, Card } from '../types/game';
 import { createDeck, shuffleDeck, drawCards } from '../utils/deck';
-import { canPlayCard, refillHand, isRoundOver, randomInRange, hasPlayableCard } from '../utils/gameLogic';
+import { canPlayCard, isRoundOver, randomInRange, hasPlayableCard } from '../utils/gameLogic';
 import { createEnemyForStage, TOTAL_STAGES } from '../data/enemies';
 import { PLAYER_INITIAL_HP, FIELD_REFRESH_MAX_COUNT, HAND_SIZE } from '../config/gameConfig';
 
@@ -63,8 +63,21 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       // カードが出せるか確認
       if (!canPlayCard(card, fieldCard)) return state;
 
-      // 手札からカードを削除
-      const newHand = state.hand.filter((_, i) => i !== cardIndex);
+      // 出したカードの位置に新しいカードを補充（位置を維持）
+      let newHand: Card[];
+      let newDeck: Card[];
+
+      if (state.deck.length > 0) {
+        // デッキにカードがある場合、同じ位置に新しいカードを入れる
+        const drawnCard = state.deck[0];
+        newDeck = state.deck.slice(1);
+        newHand = [...state.hand];
+        newHand[cardIndex] = drawnCard;
+      } else {
+        // デッキが空の場合、カードを削除するだけ
+        newDeck = state.deck;
+        newHand = state.hand.filter((_, i) => i !== cardIndex);
+      }
 
       // 場札を更新
       const newLeftField = field === 'left' ? card : state.leftFieldCard;
@@ -74,12 +87,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const attackBonus = field === 'left' ? 1 : 0;
       const shieldBonus = field === 'right' ? 1 : 0;
 
-      // 手札を補充
-      const { newDeck, newHand: refilledHand } = refillHand(state.deck, newHand);
-
       const newState: GameState = {
         ...state,
-        hand: refilledHand,
+        hand: newHand,
         deck: newDeck,
         leftFieldCard: newLeftField,
         rightFieldCard: newRightField,
