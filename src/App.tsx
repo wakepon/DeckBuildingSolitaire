@@ -5,7 +5,7 @@ import { useGameReducer } from './hooks/useGameReducer';
 import { TOTAL_STAGES } from './data/enemies';
 
 function App() {
-  const { state, resetGame, playCard, nextStage, continueGame, refreshField } = useGameReducer();
+  const { state, resetGame, playCard, nextStage, continueGame, refreshField, manualEndRound, endRound } = useGameReducer();
 
   // ゲームクリア画面（全ステージクリア）
   if (state.gameStatus === 'game_clear') {
@@ -90,6 +90,8 @@ function App() {
           state={state}
           onPlayCard={playCard}
           onRefreshField={refreshField}
+          onManualEndRound={manualEndRound}
+          onEndRound={endRound}
           onReset={resetGame}
         />
         <BattleResultScreen
@@ -103,13 +105,15 @@ function App() {
     );
   }
 
-  // ゲームプレイ画面
+  // ゲームプレイ画面（round_ending状態も含む）
   return (
     <div className="min-h-screen bg-green-800 p-4">
       <GameBoard
         state={state}
         onPlayCard={playCard}
         onRefreshField={refreshField}
+        onManualEndRound={manualEndRound}
+        onEndRound={endRound}
         onReset={resetGame}
       />
       <BuildInfo />

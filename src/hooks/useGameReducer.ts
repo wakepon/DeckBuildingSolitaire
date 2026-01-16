@@ -10,6 +10,7 @@ type GameAction =
   | { type: 'START_GAME' }
   | { type: 'PLAY_CARD'; cardId: string; field: 'left' | 'right' }
   | { type: 'REFRESH_FIELD' }
+  | { type: 'MANUAL_END_ROUND' }
   | { type: 'END_ROUND' }
   | { type: 'CONTINUE_GAME' }
   | { type: 'NEXT_STAGE' }
@@ -45,9 +46,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case 'START_GAME':
     case 'RESET_GAME': {
       const initialState = createInitialState();
-      // ラウンド開始時点でカードが出せない場合は即座にダメージ処理へ
+      // ラウンド開始時点でカードが出せない場合はround_ending状態へ
       if (!hasPlayableCard(initialState.hand, initialState.leftFieldCard, initialState.rightFieldCard)) {
-        return gameReducer(initialState, { type: 'END_ROUND' });
+        return { ...initialState, gameStatus: 'round_ending' };
       }
       return initialState;
     }
@@ -97,9 +98,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         playerShield: state.playerShield + shieldBonus,
       };
 
-      // ラウンド終了判定
+      // ラウンド終了判定（出せるカードがなくなったらround_ending状態へ）
       if (isRoundOver(newState)) {
-        return gameReducer(newState, { type: 'END_ROUND' });
+        return { ...newState, gameStatus: 'round_ending' };
       }
 
       return newState;
@@ -129,6 +130,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         enemy: newEnemy,
         fieldRefreshCount: state.fieldRefreshCount - 1,
       };
+    }
+
+    case 'MANUAL_END_ROUND': {
+      // プレイヤーが手動で攻撃終了を選択
+      return { ...state, gameStatus: 'round_ending' };
     }
 
     case 'END_ROUND': {
@@ -228,9 +234,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         lastBattleResult: null,
       };
 
-      // ラウンド開始時点でカードが出せない場合は即座にダメージ処理へ
+      // ラウンド開始時点でカードが出せない場合はround_ending状態へ
       if (!hasPlayableCard(hand, fieldCards[0] || null, fieldCards[1] || null)) {
-        return gameReducer(nextRoundState, { type: 'END_ROUND' });
+        return { ...nextRoundState, gameStatus: 'round_ending' };
       }
 
       return nextRoundState;
@@ -258,9 +264,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         lastBattleResult: null,
       };
 
-      // ラウンド開始時点でカードが出せない場合は即座にダメージ処理へ
+      // ラウンド開始時点でカードが出せない場合はround_ending状態へ
       if (!hasPlayableCard(hand, fieldCards[0] || null, fieldCards[1] || null)) {
-        return gameReducer(nextStageState, { type: 'END_ROUND' });
+        return { ...nextStageState, gameStatus: 'round_ending' };
       }
 
       return nextStageState;
@@ -280,6 +286,8 @@ export function useGameReducer() {
   const nextStage = useCallback(() => dispatch({ type: 'NEXT_STAGE' }), []);
   const continueGame = useCallback(() => dispatch({ type: 'CONTINUE_GAME' }), []);
   const refreshField = useCallback(() => dispatch({ type: 'REFRESH_FIELD' }), []);
+  const manualEndRound = useCallback(() => dispatch({ type: 'MANUAL_END_ROUND' }), []);
+  const endRound = useCallback(() => dispatch({ type: 'END_ROUND' }), []);
 
   const playCard = useCallback((cardId: string, field: 'left' | 'right') => {
     dispatch({ type: 'PLAY_CARD', cardId, field });
@@ -293,5 +301,7 @@ export function useGameReducer() {
     nextStage,
     continueGame,
     refreshField,
+    manualEndRound,
+    endRound,
   };
 }
