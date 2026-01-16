@@ -1,7 +1,7 @@
 import { useReducer, useCallback } from 'react';
 import type { GameState, Enemy, BattleResult } from '../types/game';
 import { createDeck, shuffleDeck, drawCards } from '../utils/deck';
-import { canPlayCard, refillHand, isRoundOver, randomInRange } from '../utils/gameLogic';
+import { canPlayCard, refillHand, isRoundOver, randomInRange, hasPlayableCard } from '../utils/gameLogic';
 import { createEnemyForStage, TOTAL_STAGES } from '../data/enemies';
 import { PLAYER_INITIAL_HP, FIELD_REFRESH_MAX_COUNT, HAND_SIZE } from '../config/gameConfig';
 
@@ -43,8 +43,14 @@ function createInitialState(): GameState {
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'START_GAME':
-    case 'RESET_GAME':
-      return createInitialState();
+    case 'RESET_GAME': {
+      const initialState = createInitialState();
+      // ラウンド開始時点でカードが出せない場合は即座にダメージ処理へ
+      if (!hasPlayableCard(initialState.hand, initialState.leftFieldCard, initialState.rightFieldCard)) {
+        return gameReducer(initialState, { type: 'END_ROUND' });
+      }
+      return initialState;
+    }
 
     case 'PLAY_CARD': {
       const { cardId, field } = action;
@@ -197,7 +203,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         currentShield: randomInRange(state.enemy.shieldRange[0], state.enemy.shieldRange[1]),
       };
 
-      return {
+      const nextRoundState: GameState = {
         ...state,
         playerHP: newPlayerHP,
         playerAttack: 0,
@@ -211,6 +217,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         gameStatus: 'playing',
         lastBattleResult: null,
       };
+
+      // ラウンド開始時点でカードが出せない場合は即座にダメージ処理へ
+      if (!hasPlayableCard(hand, fieldCards[0] || null, fieldCards[1] || null)) {
+        return gameReducer(nextRoundState, { type: 'END_ROUND' });
+      }
+
+      return nextRoundState;
     }
 
     case 'NEXT_STAGE': {
@@ -219,7 +232,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const { cards: fieldCards, remainingDeck: deckAfterField } = drawCards(deck, 2);
       const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, HAND_SIZE);
 
-      return {
+      const nextStageState: GameState = {
         ...state,
         playerAttack: 0,
         playerShield: 0,
@@ -234,6 +247,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         fieldRefreshCount: FIELD_REFRESH_MAX_COUNT,
         lastBattleResult: null,
       };
+
+      // ラウンド開始時点でカードが出せない場合は即座にダメージ処理へ
+      if (!hasPlayableCard(hand, fieldCards[0] || null, fieldCards[1] || null)) {
+        return gameReducer(nextStageState, { type: 'END_ROUND' });
+      }
+
+      return nextStageState;
     }
 
     default:
