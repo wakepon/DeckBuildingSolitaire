@@ -3,7 +3,7 @@ import type { GameState, Enemy, BattleResult } from '../types/game';
 import { createDeck, shuffleDeck, drawCards } from '../utils/deck';
 import { canPlayCard, refillHand, isRoundOver, randomInRange } from '../utils/gameLogic';
 import { createEnemyForStage, TOTAL_STAGES } from '../data/enemies';
-import { PLAYER_INITIAL_HP, FIELD_REFRESH_MAX_COUNT } from '../config/gameConfig';
+import { PLAYER_INITIAL_HP, FIELD_REFRESH_MAX_COUNT, HAND_SIZE } from '../config/gameConfig';
 
 // アクションの型定義
 type GameAction =
@@ -19,7 +19,7 @@ type GameAction =
 function createInitialState(): GameState {
   const deck = shuffleDeck(createDeck());
   const { cards: fieldCards, remainingDeck: deckAfterField } = drawCards(deck, 2);
-  const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, 4);
+  const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, HAND_SIZE);
 
   return {
     playerHP: PLAYER_INITIAL_HP,
@@ -188,7 +188,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       const deck = shuffleDeck(createDeck());
       const { cards: fieldCards, remainingDeck: deckAfterField } = drawCards(deck, 2);
-      const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, 4);
+      const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, HAND_SIZE);
 
       const newEnemy: Enemy = {
         ...state.enemy,
@@ -217,7 +217,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const newStage = state.stage + 1;
       const deck = shuffleDeck(createDeck());
       const { cards: fieldCards, remainingDeck: deckAfterField } = drawCards(deck, 2);
-      const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, 4);
+      const { cards: hand, remainingDeck: finalDeck } = drawCards(deckAfterField, HAND_SIZE);
 
       return {
         ...state,
