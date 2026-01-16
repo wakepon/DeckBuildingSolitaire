@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { GameState } from '../types/game';
 import { EnemyInfo } from './EnemyInfo';
 import { PlayerInfo } from './PlayerInfo';
@@ -11,14 +11,25 @@ interface GameBoardProps {
   state: GameState;
   onPlayCard: (cardId: string, field: 'left' | 'right') => void;
   onRefreshField: () => void;
+  onEndRound: () => void;
   onReset: () => void;
 }
 
 /**
  * ゲームボード全体を表示するコンポーネント
  */
-export function GameBoard({ state, onPlayCard, onRefreshField, onReset }: GameBoardProps) {
+export function GameBoard({ state, onPlayCard, onRefreshField, onEndRound, onReset }: GameBoardProps) {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  // round_ending状態になったら1秒後にEND_ROUNDを呼ぶ
+  useEffect(() => {
+    if (state.gameStatus === 'round_ending') {
+      const timer = setTimeout(() => {
+        onEndRound();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [state.gameStatus, onEndRound]);
 
   // 選択中のカードを取得
   const selectedCard = selectedCardId
@@ -117,6 +128,20 @@ export function GameBoard({ state, onPlayCard, onRefreshField, onReset }: GameBo
           リセット
         </button>
       </div>
+
+      {/* ラウンド終了メッセージ */}
+      {state.gameStatus === 'round_ending' && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-gray-800 rounded-lg p-6 text-center animate-slide-in-up">
+            <p className="text-2xl font-bold text-yellow-400">
+              もう出せません
+            </p>
+            <p className="text-gray-300 mt-2 text-sm">
+              ダメージ計算に移行します...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
