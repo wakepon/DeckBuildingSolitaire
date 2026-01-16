@@ -87,10 +87,10 @@ export function GameBoard({ state, onPlayCard, onRefreshField, onManualEndRound,
         <div className="text-center">
           <button
             onClick={onRefreshField}
-            disabled={state.fieldRefreshCount <= 0 || state.deck.length < 2 || state.gameStatus !== 'playing'}
+            disabled={state.fieldRefreshCount <= 0 || state.deck.length < 2 || state.gameStatus !== 'playing' || state.hasPlayedCardThisRound}
             className={`
               px-4 py-2 rounded-lg font-bold transition-all
-              ${state.fieldRefreshCount > 0 && state.deck.length >= 2 && state.gameStatus === 'playing'
+              ${state.fieldRefreshCount > 0 && state.deck.length >= 2 && state.gameStatus === 'playing' && !state.hasPlayedCardThisRound
                 ? 'bg-purple-600 text-white hover:bg-purple-700 active:scale-95'
                 : 'bg-gray-600 text-gray-400 cursor-not-allowed'
               }
@@ -99,7 +99,7 @@ export function GameBoard({ state, onPlayCard, onRefreshField, onManualEndRound,
             🔄 場札更新 ({state.fieldRefreshCount})
           </button>
           <p className="text-gray-400 text-xs mt-1">
-            場札と敵ステータスを引き直す
+            ラウンド開始時のみ使用可能
           </p>
         </div>
 

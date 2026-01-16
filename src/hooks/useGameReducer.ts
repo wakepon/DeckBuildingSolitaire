@@ -36,6 +36,7 @@ function createInitialState(): GameState {
     round: 1,
     gameStatus: 'playing',
     fieldRefreshCount: FIELD_REFRESH_MAX_COUNT,
+    hasPlayedCardThisRound: false,
     lastBattleResult: null,
   };
 }
@@ -90,6 +91,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         rightFieldCard: newRightField,
         playerAttack: state.playerAttack + attackBonus,
         playerShield: state.playerShield + shieldBonus,
+        hasPlayedCardThisRound: true,
       };
 
       return newState;
@@ -220,6 +222,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         enemy: newEnemy,
         round: state.round + 1,
         gameStatus: 'playing',
+        hasPlayedCardThisRound: false,
         lastBattleResult: null,
       };
     }
@@ -243,6 +246,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         round: 1,
         gameStatus: 'playing',
         fieldRefreshCount: FIELD_REFRESH_MAX_COUNT,
+        hasPlayedCardThisRound: false,
         lastBattleResult: null,
       };
     }

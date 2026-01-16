@@ -102,6 +102,9 @@ export interface GameState {
   // 場札更新の残り回数
   fieldRefreshCount: number;
 
+  // このラウンドでカードをプレイしたか（場札更新の制限用）
+  hasPlayedCardThisRound: boolean;
+
   // バトル結果（演出用）
   lastBattleResult: BattleResult | null;
 }
